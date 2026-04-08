@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Tareas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* Formulario de nueva tarea */
+        .task-form {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* Filtros */
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Lista de tareas */
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tasks-header h2 {
+            color: #333;
+        }
+
+        .tasks-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .task-item {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .task-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .task-item.completed {
+            opacity: 0.6;
+            background: #f0f0f0;
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .task-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-priority-alta {
+            background: #ff4757;
+            color: white;
+        }
+
+        .badge-priority-media {
+            background: #ffa502;
+            color: white;
+        }
+
+        .badge-priority-baja {
+            background: #26de81;
+            color: white;
+        }
+
+        .badge-category {
+            background: #667eea;
+            color: white;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-complete {
+            background: #26de81;
+            color: white;
+        }
+
+        .btn-complete:hover {
+            background: #20bf6b;
+        }
+
+        .btn-delete {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #ee5a6f;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .task-actions {
+                flex-direction: column;
+            }
+
+            .btn-small {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Sistema de Gestión de Tareas</h1>
+            <p>Organiza tu día de manera eficiente</p>
+        </header>
+
+        <!-- Formulario para agregar tareas -->
+        <div class="app-card">
+            <h2 style="margin-bottom: 20px; color: #333;">➕ Agregar Nueva Tarea</h2>
+            <form id="taskForm" class="task-form">
+                <div class="form-group">
+                    <label for="taskTitle">Título de la tarea *</label>
+                    <input type="text" id="taskTitle" required placeholder="Ej: Completar informe mensual">
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">Descripción</label>
+                    <textarea id="taskDescription" placeholder="Detalles adicionales sobre la tarea..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskPriority">Prioridad *</label>
+                        <select id="taskPriority" required>
+                            <option value="">Seleccionar prioridad</option>
+                            <option value="alta">🔴 Alta</option>
+                            <option value="media">🟡 Media</option>
+                            <option value="baja">🟢 Baja</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taskCategory">Categoría *</label>
+                        <select id="taskCategory" required>
+                            <option value="">Seleccionar categoría</option>
+                            <option value="personal">👤 Personal</option>
+                            <option value="trabajo">💼 Trabajo</option>
+                            <option value="estudios">📚 Estudios</option>
+                            <option value="otros">📌 Otros</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Agregar Tarea</button>
+            </form>
+        </div>
+
+        <!-- Filtros -->
+        <div class="app-card">
+            <div class="filters">
+                <button class="filter-btn active" data-filter="todas">Todas</button>
+                <button class="filter-btn" data-filter="personal">👤 Personal</button>
+                <button class="filter-btn" data-filter="trabajo">💼 Trabajo</button>
+                <button class="filter-btn" data-filter="estudios">📚 Estudios</button>
+                <button class="filter-btn" data-filter="otros">📌 Otros</button>
+                <button class="filter-btn" data-filter="alta">🔴 Alta</button>
+                <button class="filter-btn" data-filter="media">🟡 Media</button>
+                <button class="filter-btn" data-filter="baja">🟢 Baja</button>
+            </div>
+        </div>
+
+        <!-- Lista de tareas -->
+        <div class="app-card">
+            <div class="tasks-header">
+                <h2>Mis Tareas</h2>
+                <span class="tasks-count" id="tasksCount">0 tareas</span>
+            </div>
+            <div id="tasksList" class="tasks-list">
+                <!-- Las tareas se agregarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Array para almacenar las tareas
+        let tasks = [];
+        let currentFilter = 'todas';
+
+        // Cargar tareas del localStorage al iniciar
+        window.addEventListener('DOMContentLoaded', () => {
+            loadTasksFromStorage();
+            renderTasks();
+        });
+
+        // Manejar el envío del formulario
+        document.getElementById('taskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            addTask();
+        });
+
+        // Función para agregar una nueva tarea
+        function addTask() {
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDescription').value;
+            const priority = document.getElementById('taskPriority').value;
+            const category = document.getElementById('taskCategory').value;
+
+            const task = {
+                id: Date.now(),
+                title: title,
+                description: description,
+                priority: priority,
+                category: category,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+
+            tasks.unshift(task); // Agregar al inicio
+            saveTasksToStorage();
+            renderTasks();
+            
+            // Limpiar formulario
+            document.getElementById('taskForm').reset();
+            
+            // Mostrar mensaje de éxito
+            showNotification('✅ Tarea agregada exitosamente');
+        }
+
+        // Función para renderizar las tareas
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+            const tasksCount = document.getElementById('tasksCount');
+            
+            // Filtrar tareas
+            let filteredTasks = tasks;
+            if (currentFilter !== 'todas') {
+                filteredTasks = tasks.filter(task => 
+                    task.category === currentFilter || task.priority === currentFilter
+                );
+            }
+
+            // Actualizar contador
+            tasksCount.textContent = `${filteredTasks.length} tarea${filteredTasks.length !== 1 ? 's' : ''}`;
+
+            // Si no hay tareas, mostrar mensaje
+            if (filteredTasks.length === 0) {
+                tasksList.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                        <h3>No hay tareas</h3>
+                        <p>Agrega una nueva tarea para comenzar</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Renderizar tareas
+            tasksList.innerHTML = filteredTasks.map(task => `
+                <div class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+                    <div class="task-header">
+                        <div class="task-title">${task.title}</div>
+                    </div>
+                    ${task.description ? `<div class="task-description">${task.description}</div>` : ''}
+                    <div class="task-meta">
+                        <span class="badge badge-priority-${task.priority}">${getPriorityText(task.priority)}</span>
+                        <span class="badge badge-category">${getCategoryText(task.category)}</span>
+                    </div>
+                    <div class="task-actions">
+                        <button class="btn-small btn-complete" onclick="toggleComplete(${task.id})">
+                            ${task.completed ? '↩️ Reabrir' : '✓ Completar'}
+                        </button>
+                        <button class="btn-small btn-delete" onclick="deleteTask(${task.id})">
+                            🗑️ Eliminar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Función para marcar/desmarcar como completada
+        function toggleComplete(id) {
+            const task = tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                saveTasksToStorage();
+                renderTasks();
+                showNotification(task.completed ? '✅ Tarea completada' : '↩️ Tarea reabierta');
+            }
+        }
+
+        // Función para eliminar una tarea
+        function deleteTask(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                tasks = tasks.filter(t => t.id !== id);
+                saveTasksToStorage();
+                renderTasks();
+                showNotification('🗑️ Tarea eliminada');
+            }
+        }
+
+        // Filtros
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderTasks();
+            });
+        });
+
+        // Funciones auxiliares
+        function getPriorityText(priority) {
+            const priorities = {
+                alta: 'Alta',
+                media: 'Media',
+                baja: 'Baja'
+            };
+            return priorities[priority] || priority;
+        }
+
+        function getCategoryText(category) {
+            const categories = {
+                personal: '👤 Personal',
+                trabajo: '💼 Trabajo',
+                estudios: '📚 Estudios',
+                otros: '📌 Otros'
+            };
+            return categories[category] || category;
+        }
+
+        // Guardar tareas en localStorage
+        function saveTasksToStorage() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        // Cargar tareas desde localStorage
+        function loadTasksFromStorage() {
+            const stored = localStorage.getItem('tasks');
+            if (stored) {
+                tasks = JSON.parse(stored);
+            }
+        }
+
+        // Notificación simple
+        function showNotification(message) {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #26de81;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                animation: slideInRight 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Eliminar después de 3 segundos
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
